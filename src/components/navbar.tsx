@@ -1,13 +1,17 @@
 'use client';
-import { SessionContext } from '@/contexts/sessionContext';
-import { useContext } from 'react'
+import { useSessionStore } from '@/contexts/sessionContext';
+import Cookies from 'js-cookie'
 import Link from 'next/link'
 
 export const Navbar = () => {
-    const session = useContext(SessionContext);
+    const session = useSessionStore();
+    const tokenAdmin = Cookies.get('ppdb_admin');
+
+    if (tokenAdmin) {
+        session.setToken(tokenAdmin);
+    }
     return (
-        <div className="navbar bg
-        import { SessionContext } from '@/contexts/sessionContext';-base-100">
+        <div className="navbar bg-base-100">
             <div className="navbar-start">
                 <div className="dropdown">
                 <label tabIndex={0} className="btn btn-ghost btn-circle">
@@ -15,7 +19,7 @@ export const Navbar = () => {
                 </label>
                 <ul tabIndex={0} className="menu menu-compact dropdown-content mt-3 p-2 shadow bg-base-100 rounded-box w-52">
                     <li><a>Homepage</a></li>
-                    {!session ? (
+                    {!session.token ? (
                     <>
                         <li><Link href='/login'>Login</Link></li>
                     </>

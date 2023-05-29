@@ -1,5 +1,5 @@
 'use client';
-import React from 'react';
+import { create } from 'zustand';
 
 export enum UserStatus  {
     FullAdmin = 2,
@@ -12,6 +12,31 @@ export type UserSession = {
     username: string;
     email: string;
     status: UserStatus;
+    token?: string;
 }
 
-export const SessionContext = React.createContext<UserSession | undefined>(undefined);
+export type UserAction = {
+    updateState: (state: UserSession) => void;
+    setToken: (token: string) => void;
+    loadUserInfo: () => void;
+}
+
+export const useSessionStore = create<UserSession & UserAction>((set, state) => ({
+    email: '',
+    id: 0,
+    status: UserStatus.NonActive,
+    username: '',
+    updateState: (state) => set(() => state),
+    setToken: (token) => set((st) => ({ ...st, token })),
+    loadUserInfo: () => {
+        const st = state();
+        fetch('https://ppdb.api.sman3palu.sch.id/api/auth', {
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${st.token}`,
+            },
+        }).then(r => r.json()).then(res => {
+            set((st) => ({ ...st, ...res.data }));
+        });
+    },
+}));

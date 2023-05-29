@@ -1,3 +1,4 @@
+import React from 'react'
 import { Navbar } from '@/components/navbar'
 import './globals.css'
 import { SessionContextWrap } from '@/components/contexts/sessionContextWrap';
