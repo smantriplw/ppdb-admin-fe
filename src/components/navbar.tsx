@@ -1,4 +1,5 @@
 'use client';
+import React from 'react'
 import { useSessionStore } from '@/contexts/sessionContext';
 import Cookies from 'js-cookie'
 import Link from 'next/link'
@@ -7,9 +8,12 @@ export const Navbar = () => {
     const session = useSessionStore();
     const tokenAdmin = Cookies.get('ppdb_admin');
 
-    if (tokenAdmin) {
-        session.setToken(tokenAdmin);
-    }
+    React.useEffect(() => {
+        if (tokenAdmin) {
+            session.setToken(tokenAdmin);
+            session.loadUserInfo();
+        }
+    }, [tokenAdmin]);
     return (
         <div className="navbar bg-base-100">
             <div className="navbar-start">
@@ -25,7 +29,9 @@ export const Navbar = () => {
                     </>
                     ) : (
                         <>
-                            <li><Link href='/me'>My profile ({session.username})</Link></li>
+                            <li><Link href='/me'>Halaman Profile ({session.username} - {session.status})</Link></li>
+                            <li><Link href='/verifikasi'>Halaman Verifikasi</Link></li>
+                            <li><Link href='/terverifikasi'>Halaman Terverifikasi</Link></li>
                             <li><Link href='/logout'>Logout</Link></li>
                         </>
                     )}

@@ -5,6 +5,7 @@ import * as Yup from 'yup'
 import Cookies from 'js-cookie'
 import { FormField } from './field';
 import { useRouter } from 'next/navigation'
+import { useSessionStore } from '@/contexts/sessionContext'
 
 type DataProps = {
     isError: boolean;
@@ -21,6 +22,7 @@ const righteous = Righteous({
     subsets: ['latin'],
 });
 export const LoginForm = () => {
+    const session = useSessionStore();
     const [data, setData] = React.useState<DataProps>({
         isError: false,
     });
@@ -30,6 +32,10 @@ export const LoginForm = () => {
     React.useEffect(() => {
         if (savedToken) {
             router.push('/me');
+        } else {
+            if (session.token) {
+                session.reset();
+            }
         }
     }, [savedToken, router]);
 
@@ -47,7 +53,7 @@ export const LoginForm = () => {
                 onSubmit={(values, actions) => {
                     actions.setSubmitting(true);
 
-                    fetch('https://ppdb.api.sman3palu.sch.id/api/auth/login', {
+                    fetch('/api/auth/login', {
                         body: JSON.stringify(values),
                         headers: {
                             'Content-Type': 'application/json',
@@ -71,6 +77,8 @@ export const LoginForm = () => {
                             }
 
                             Cookies.set('ppdb_admin', res.data.token);
+                            session.setToken(res.data.token);
+                            session.loadUserInfo();
                             router.push('/me');
                         }
                     }).catch(e => {

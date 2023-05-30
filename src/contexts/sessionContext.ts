@@ -19,6 +19,7 @@ export type UserAction = {
     updateState: (state: UserSession) => void;
     setToken: (token: string) => void;
     loadUserInfo: () => void;
+    reset: () => void;
 }
 
 export const useSessionStore = create<UserSession & UserAction>((set, state) => ({
@@ -30,7 +31,7 @@ export const useSessionStore = create<UserSession & UserAction>((set, state) => 
     setToken: (token) => set((st) => ({ ...st, token })),
     loadUserInfo: () => {
         const st = state();
-        fetch('https://ppdb.api.sman3palu.sch.id/api/auth', {
+        fetch('/api/auth/profile', {
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${st.token}`,
@@ -39,4 +40,11 @@ export const useSessionStore = create<UserSession & UserAction>((set, state) => 
             set((st) => ({ ...st, ...res.data }));
         });
     },
+    reset: () => set(() => ({
+        email: '',
+        id: 0,
+        status: UserStatus.NonActive,
+        username: '',
+        token: undefined,
+    })),
 }));
