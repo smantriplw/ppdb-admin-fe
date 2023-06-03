@@ -29,9 +29,15 @@ export const Navbar = () => {
                     </>
                     ) : (
                         <>
-                            <li><Link href='/me'>Halaman Profile ({session.username} - {session.status})</Link></li>
                             <li><Link href='/verifikasi'>Halaman Verifikasi</Link></li>
                             <li><Link href='/terverifikasi'>Halaman Terverifikasi</Link></li>
+                            {session.status === 2 && (
+                                <>
+                                    <li>
+                                        <Link href={'/users'}>Manage users</Link>
+                                    </li>
+                                </>
+                            )}
                             <li><Link href='/logout'>Logout</Link></li>
                         </>
                     )}
