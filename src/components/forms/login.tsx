@@ -37,7 +37,7 @@ export const LoginForm = () => {
                 session.reset();
             }
         }
-    }, [savedToken, router]);
+    }, [savedToken, router, session]);
 
     return (
         <div>
@@ -59,7 +59,19 @@ export const LoginForm = () => {
                             'Content-Type': 'application/json',
                         },
                         method: 'POST',
-                    }).then(r => r.json()).then(res => {
+                    }).then(r => {
+                        setData({
+                            isError: false,
+                        });
+                        if (r.status === 302) {
+                            setData({
+                                isError: true,
+                                message: 'Invalid credentials',
+                            });
+                            actions.setSubmitting(false);
+                        }
+                        return r.json();
+                    }).then(res => {
                         if (res.errors || res.error) {
                             setData({
                               isError: true,
