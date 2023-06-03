@@ -1,11 +1,34 @@
 'use client';
 import React from 'react'
 import { useSessionStore } from '@/contexts/sessionContext'
-import Image from 'next/image'
+// import Image from 'next/image'
 import Link from 'next/link'
+
+type StatsJson = {
+    archives: {
+        all: number;
+        complete: number;
+        speciifed: Record<string, number>;
+        daily: {
+            todayCount: number;
+            lastWeek: number;
+        };
+    };
+}
 
 export default function MePage() {
     const session = useSessionStore();
+    const [data, setData] = React.useState();
+
+    React.useEffect(() => {
+        if (session.token)
+            fetch('/api/stats', {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${session.token}`,
+                }
+            }).then(r => r.json()).then(setData);
+    }, [session?.token]);
     return (
         <main>
             <div className="hero min-h-screen bg-base-200">

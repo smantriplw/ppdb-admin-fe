@@ -3,17 +3,25 @@ import React from 'react'
 import { useSessionStore } from '@/contexts/sessionContext';
 import Cookies from 'js-cookie'
 import Link from 'next/link'
+import { useRouter, usePathname } from 'next/navigation'
 
 export const Navbar = () => {
+    const router = useRouter();
+    const path = usePathname();
     const session = useSessionStore();
     const tokenAdmin = Cookies.get('ppdb_admin');
 
     React.useEffect(() => {
         if (tokenAdmin) {
-            session.setToken(tokenAdmin);
-            session.loadUserInfo();
+            if (!session.token) session.setToken(tokenAdmin);
+            if (!session.username.length) session.loadUserInfo(() => {
+                session.reset();
+                Cookies.remove('ppdb_admin');
+            });
+        } else if (!tokenAdmin && path !== '/') {
+            router.push('/');
         }
-    }, [tokenAdmin]);
+    }, [tokenAdmin, session, router, path]);
     return (
         <div className="navbar bg-base-100">
             <div className="navbar-start">

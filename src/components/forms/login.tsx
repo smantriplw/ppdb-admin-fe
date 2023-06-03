@@ -90,8 +90,8 @@ export const LoginForm = () => {
 
                             Cookies.set('ppdb_admin', res.data.token);
                             session.setToken(res.data.token);
-                            session.loadUserInfo();
-                            router.push('/me');
+                            // session.loadUserInfo();
+                            // router.push('/me');
                         }
                     }).catch(e => {
                         actions.setSubmitting(false);
