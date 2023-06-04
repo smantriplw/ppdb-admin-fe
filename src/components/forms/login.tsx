@@ -6,6 +6,7 @@ import Cookies from 'js-cookie'
 import { FormField } from './field';
 import { useRouter } from 'next/navigation'
 import { useSessionStore } from '@/contexts/sessionContext'
+import { useThemeSwitcher } from '@/contexts/themeContext'
 
 type DataProps = {
     isError: boolean;
@@ -23,6 +24,7 @@ const righteous = Righteous({
 });
 export const LoginForm = () => {
     const session = useSessionStore();
+    const themer = useThemeSwitcher();
     const [data, setData] = React.useState<DataProps>({
         isError: false,
     });
@@ -75,7 +77,7 @@ export const LoginForm = () => {
                         if (res.errors || res.error) {
                             setData({
                               isError: true,
-                              message: res.error || res.message,
+                              message: res.error || res.message || res.errors,
                             });
                             actions.setSubmitting(false);
                           } else {
@@ -120,16 +122,16 @@ export const LoginForm = () => {
                         {data.message ? (
                             <div className="text-center mt-2">
                                 <div className={`alert alert-${data.isError ? 'error' : 'success'} shadow-lg`}>
-                                <div>
-                                    <svg xmlns="http://www.w3.org/2000/svg" className="stroke-current flex-shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                                    <span>{data.isError ? 'Error' : 'Sukses'}! {data.message}</span>
-                                </div>
+                                    <div className="flex flex-row justify-center items-center">
+                                        <svg xmlns="http://www.w3.org/2000/svg" className="stroke-current flex-shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                        {data.isError ? 'Error' : 'Sukses'}! {data.message.trim()}
+                                    </div>
                                 </div>
                             </div>
                         ) : null}
                         <div className="text-center">
                             <div className="text-center">
-                                <button disabled={props.isSubmitting} className={`btn border-none mt-2 bg-[#1b30a5]${props.isSubmitting ? ' loading' : ''}`}>login</button>
+                                <button disabled={props.isSubmitting} className={`btn border-none mt-2 bg-[#1b30a5]${themer.theme === 'lofi' ? 'text-white' : ''}${props.isSubmitting ? ' loading' : ''}`}>login</button>
                             </div>
                         </div>
                     </Form>

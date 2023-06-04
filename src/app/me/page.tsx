@@ -3,12 +3,14 @@ import React from 'react'
 import { useSessionStore } from '@/contexts/sessionContext'
 // import Image from 'next/image'
 import Link from 'next/link'
+import useSWR from 'swr'
+import { fetcher } from '@/lib/fetcher';
 
 type StatsJson = {
     archives: {
         all: number;
         complete: number;
-        speciifed: Record<string, number>;
+        specified: Record<string, number>;
         daily: {
             todayCount: number;
             lastWeek: number;
@@ -18,17 +20,13 @@ type StatsJson = {
 
 export default function MePage() {
     const session = useSessionStore();
-    const [data, setData] = React.useState();
+    const { data, isLoading } = useSWR<StatsJson>(session.token ? '/api/stats' : null, url => fetcher(url, {
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${session.token}`,
+        }
+    }));
 
-    React.useEffect(() => {
-        if (session.token)
-            fetch('/api/stats', {
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${session.token}`,
-                }
-            }).then(r => r.json()).then(setData);
-    }, [session?.token]);
     return (
         <main>
             <div className="hero min-h-screen bg-base-200">
@@ -44,6 +42,85 @@ export default function MePage() {
                             <Link className="btn btn-secondary" href={'/terverifikasi'}>terverifikasi</Link>
                         </div>
                     </div>
+                    {!isLoading && data?.archives && !('errors' in data) && (
+                        <div className="grid lg:grid-cols-1 grid-cols-2 gap-4">
+                            <div className="stats stats-vertical lg:stats-horizontal">
+                                <div className="stat">
+                                    <h1 className="stat-title">
+                                        Total Pendaftar
+                                    </h1>
+                                    <p className="stat-value">
+                                        {data?.archives.all.toString() || '0'}
+                                    </p>
+                                </div>
+
+                                <div className="stat">
+                                    <h1 className="stat-title">
+                                        Berkas Lengkap ({Math.floor(
+                                            ((data?.archives.complete || 0) / (data?.archives.all || 0)) * 100
+                                        )}%)
+                                    </h1>
+                                    <p className="stat-value">
+                                        {data?.archives.complete.toString() || '0'}
+                                    </p>
+                                </div>
+
+                                <div className="stat">
+                                    <h1 className="stat-title">
+                                        Berkas Belum Lengkap ({Math.floor(
+                                            ((data ? (data?.archives.all - data?.archives.complete) : 0) / (data?.archives.all || 0)) * 100
+                                        )}%)
+                                    </h1>
+                                    <p className="stat-value">
+                                        {data ? (data.archives.all - data.archives.complete).toString() : '0'}
+                                    </p>
+                                </div>
+                            </div>
+                            <div className="stats stats-vertical lg:stats-horizontal">
+                                <div className="stat">
+                                    <h1 className="stat-title">
+                                        Pendaftar Hari Ini
+                                    </h1>
+                                    <p className="stat-value">
+                                        {data?.archives.daily.todayCount.toString() || '0'}
+                                    </p>
+                                </div>
+
+                                <div className="stat">
+                                    <h1 className="stat-title">
+                                        Pendaftar Minggu Ini
+                                    </h1>
+                                    <p className="stat-value">
+                                        {data?.archives.daily.lastWeek.toString() || '0'}
+                                    </p>
+                                </div>
+                            </div>
+                            <div className="stats stats-vertical lg:stats-horizontal">
+                                {Object.entries(data?.archives.specified || {}).map(x => (
+                                <div className={`stat${x[0] !== 'zonasi' ? ' hidden lg:block' : ''}`} key={x[0]}>
+                                    <h1 className="stat-title">
+                                        {x[0][0].toUpperCase() + x[0].slice(1)} ({Math.floor((x[1] / data?.archives.all!) * 100)}%)
+                                    </h1>
+                                    <p className="stat-value">
+                                        {x[1].toString() || '0'}
+                                    </p>
+                                    </div> 
+                                ))}
+                            </div>
+                            {Object.entries(data?.archives.specified || {}).slice(1).map(x => (
+                            <div key={x[0]} className="stats stats-vertical lg:stats-horizontal lg:hidden">
+                                <div className="stat">
+                                    <h1 className="stat-title">
+                                    {x[0][0].toUpperCase() + x[0].slice(1)} ({Math.floor((x[1] / data?.archives.all!) * 100)}%)
+                                    </h1>
+                                    <p className="stat-value">
+                                        {x[1].toString() || '0'}
+                                    </p>
+                                </div>
+                            </div>
+                            ))}
+                        </div>
+                    )}
                 </div>
             </div>
         </main>

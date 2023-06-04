@@ -1,0 +1,1 @@
+export const fetcher = (...arg: [RequestInfo | URL, RequestInit | undefined]) => fetch(...arg).then(res => res.json());
