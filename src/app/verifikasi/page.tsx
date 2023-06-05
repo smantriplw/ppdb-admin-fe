@@ -23,7 +23,6 @@ export default function VerifikasiPage() {
                 session.reset();
                 return
             }
-            sortForm(sortBy);
             cariForm(query || '');
         },
     });
@@ -70,20 +69,13 @@ export default function VerifikasiPage() {
             keys: ['nisn', 'name', 'nik'],
         });
         const results = fuse.search(query);
-        setSelectedData(results.map(x => x.item).sort());
-    }, [data?.archives]);
-
-    const sortForm = React.useCallback((sortBy: string) => {
         const values = sortBy.split(':');
-
-        const newdata = data?.archives.filter((x: any) => eval(`'${x[values![0]]}'${values![1]}`)) || [];
-        setSelectedData(newdata);
-    }, [data?.archives]);
+        setSelectedData(results.map(x => x.item).filter((x: any) => eval(`'${x[values![0]]}'${values![1]}`)).sort());
+    }, [data?.archives, sortBy]);
 
     React.useEffect(() => {
-        sortForm(sortBy);
         cariForm(query || '');
-    }, [query, sortBy, sortForm, cariForm]);
+    }, [query, cariForm]);
 
     return (
         <div>
@@ -111,14 +103,14 @@ export default function VerifikasiPage() {
                                     <button className="join-item btn" onClick={() => setCurrentPage(currentPage === data?.totalPage ? data?.totalPage : currentPage+1)}>»</button>
 
                                     <div className="join-item">
-                                        <select className="select w-full max-w-xs" defaultValue={'verificator_id:== \'null\''} value={sortBy} onChange={(ev) => setSortBy(ev.target.value)}>
+                                        <select className="select w-full max-w-xs" value={sortBy} onChange={(ev) => setSortBy(ev.target.value)}>
                                             <option disabled selected>Sort by:</option>
                                             <option value="type:== 'zonasi'">Zonasi</option>
                                             <option value="type:== 'prestasi'">Prestasi</option>
                                             <option value="type:== 'afirmasi'">Afirmasi</option>
                                             <option value="type:== 'mutasi'">Mutasi</option>
                                             <option value="verificator_id:!== 'null'">Terverifikasi</option>
-                                            <option value="verificator_id:== 'null'">Tidak terverifikasi</option>
+                                            <option value="verificator_id:== 'null'" selected>Tidak terverifikasi</option>
                                         </select>
                                     </div>
                                 </div>
