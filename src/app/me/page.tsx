@@ -39,7 +39,7 @@ export default function MePage() {
                         </p>
                         <div className="grid grid-cols-2 gap-4">
                             <Link className="btn btn-primary" href={'/verifikasi'}>verifikasi</Link>
-                            <Link className="btn btn-secondary" href={'/terverifikasi'}>terverifikasi</Link>
+                            <Link className="btn btn-secondary" href={'/users'}>users management</Link>
                         </div>
                     </div>
                     {!isLoading && data?.archives && !('errors' in data) && (

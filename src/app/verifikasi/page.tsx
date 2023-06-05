@@ -9,17 +9,38 @@ import Fuse from 'fuse.js'
 export default function VerifikasiPage() {
     const session = useSessionStore();
     const [currentPage, setCurrentPage] = React.useState(1);
+    const [query, setQuery] = React.useState<string>();
     const [selectedData, setSelectedData] = React.useState<any[]>([]);
-    const { data, isLoading } = useSWR(session.token ? `/api/archives?perPage=10&page=${currentPage}` : null, url => fetcher(url, {
+    const [sortBy, setSortBy] = React.useState<string>('verificator_id:== \'null\'');
+    const { data, isLoading, mutate } = useSWR(session.token ? `/api/archives?offset=200&page=${currentPage}` : null, url => fetcher(url, {
         headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${session.token}`
         },
     }).then(r => r.data), {
         onSuccess(data) {
-            setSelectedData(data.archives);
+            if (!data) {
+                session.reset();
+                return
+            }
+            sortForm(sortBy);
+            cariForm(query || '');
         },
     });
+
+    const sendVerifyNode = (id: string): void => {
+        fetch(`/api/archives/${id}/verify`, {
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${session.token}`,
+            },
+            method: 'POST',
+        }).finally(() => {
+            mutate();
+            setSelectedData(selectedData.filter(x => x.id !== id));
+        });
+    }
+
     const resolveDoc = (t: string) => {
         switch(t) {
             case 'prestasi':
@@ -35,21 +56,35 @@ export default function VerifikasiPage() {
 
     React.useEffect(() => {
         setSelectedData(data?.archives || []);
-    }, [data]);
+    }, [data, sortBy]);
 
 
-    const cariForm = (query: string) => {
+    const cariForm = React.useCallback((query: string) => {
+        setQuery(query);
         if (!query.length) {
             setSelectedData(data?.archives || []);
             return;
         }
-        const fuse = new Fuse(data?.archives || [], {
-            keys: ['nisn', 'name', 'nik', 'birthday', 'school'],
-        });
 
+        const fuse = new Fuse(data?.archives || [], {
+            keys: ['nisn', 'name', 'nik'],
+        });
         const results = fuse.search(query);
-        setSelectedData(results.map(x => x.item));
-    }
+        setSelectedData(results.map(x => x.item).sort());
+    }, [data?.archives]);
+
+    const sortForm = React.useCallback((sortBy: string) => {
+        const values = sortBy.split(':');
+
+        const newdata = data?.archives.filter((x: any) => eval(`'${x[values![0]]}'${values![1]}`)) || [];
+        setSelectedData(newdata);
+    }, [data?.archives]);
+
+    React.useEffect(() => {
+        sortForm(sortBy);
+        cariForm(query || '');
+    }, [query, sortBy, sortForm, cariForm]);
+
     return (
         <div>
             <div className="lg:px-40">
@@ -57,17 +92,35 @@ export default function VerifikasiPage() {
                         <div className="join join-vertical lg:join-horizontal">
                             <div>
                                 <div>
-                                    <input className="input join-item" placeholder="Cari NISN/Nama" onChange={(ev) => cariForm(ev.target.value)}/>
+                                    <input className="input join-item" placeholder="Cari NISN/Nama" value={query} onChange={(ev) => cariForm(ev.target.value)}/>
                                 </div>
                             </div>
                             <div className="join-item">
                                 <div className="join">
-                                    <button className="join-item btn">«</button>
+                                    <button className="join-item btn" onClick={() => setCurrentPage(currentPage === 1 ? 1 : currentPage-1)}>«</button>
+                                    {currentPage > 1 && (
+                                        <>
+                                            <button className="join-item btn" onClick={() => setCurrentPage(1)}>1</button>
+                                            {currentPage > 2 && <button className="join-item btn btn-disabled">...</button>}
+                                        </>
+                                    )}
                                     <button className="join-item btn btn-neutral">{currentPage}</button>
-                                    <button className="join-item btn">{data?.nextPage}</button>
+                                    {currentPage !== data?.totalPage && <button className="join-item btn" onClick={() => setCurrentPage(data?.nextPage)}>{data?.nextPage}</button>}
                                     <button className="join-item btn btn-disabled">...</button>
-                                    <button className="join-item btn">{data?.totalPage}</button>
-                                    <button className="join-item btn">»</button>
+                                    <button className="join-item btn" onClick={() => setCurrentPage(data?.totalPage)}>{data?.totalPage}</button>
+                                    <button className="join-item btn" onClick={() => setCurrentPage(currentPage === data?.totalPage ? data?.totalPage : currentPage+1)}>»</button>
+
+                                    <div className="join-item">
+                                        <select className="select w-full max-w-xs" defaultValue={'verificator_id:== \'null\''} value={sortBy} onChange={(ev) => setSortBy(ev.target.value)}>
+                                            <option disabled selected>Sort by:</option>
+                                            <option value="type:== 'zonasi'">Zonasi</option>
+                                            <option value="type:== 'prestasi'">Prestasi</option>
+                                            <option value="type:== 'afirmasi'">Afirmasi</option>
+                                            <option value="type:== 'mutasi'">Mutasi</option>
+                                            <option value="verificator_id:!== 'null'">Terverifikasi</option>
+                                            <option value="verificator_id:== 'null'">Tidak terverifikasi</option>
+                                        </select>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -77,9 +130,9 @@ export default function VerifikasiPage() {
                     {!isLoading && data && (
                         <>
                             <table className="table">
-                                {/* head */}
                                 <thead>
                                 <tr className="lg:text-lg">
+                                    <th>Actions</th>
                                     <th>Berkas/Kelamin</th>
                                     <th>Nama</th>
                                     <th>NISN</th>
@@ -92,12 +145,20 @@ export default function VerifikasiPage() {
                                     <th>Agama</th>
                                     <th>SKHU</th>
                                     <th>Foto Pas</th>
-                                    <th>KK/Sertifikat/SK Mutasi/KIP</th>
+                                    <th>Dokumen Lain</th>
                                 </tr>
                                 </thead>
                                 <tbody>
                                     {selectedData.map((archive: any) => (
                                         <tr key={archive.id}>
+                                            <th>
+                                                <button className="btn btn-secondary text-sm" onClick={(ev) => {
+                                                    ev.currentTarget.setAttribute('disabled', 'true');
+                                                    sendVerifyNode(archive.id);
+                                                }}>
+                                                    verify
+                                                </button>
+                                            </th>
                                             <td>{archive.id.split('-')[0]}/{archive.gender}</td>
                                             <td>{archive.name}</td>
                                             <td>{archive.nisn}</td>
