@@ -60,8 +60,9 @@ export default function VerifikasiPage() {
 
     const cariForm = React.useCallback((query: string) => {
         setQuery(query);
+        const values = sortBy.split(':');
         if (!query.length) {
-            setSelectedData(data?.archives || []);
+            setSelectedData(data?.archives.filter((x: any) => eval(`'${x[values![0]]}'${values![1]}`)) || []);
             return;
         }
 
@@ -69,7 +70,6 @@ export default function VerifikasiPage() {
             keys: ['nisn', 'name', 'nik'],
         });
         const results = fuse.search(query);
-        const values = sortBy.split(':');
         setSelectedData(results.map(x => x.item).filter((x: any) => eval(`'${x[values![0]]}'${values![1]}`)).sort());
     }, [data?.archives, sortBy]);
 
