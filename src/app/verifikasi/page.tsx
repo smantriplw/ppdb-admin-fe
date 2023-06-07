@@ -5,6 +5,14 @@ import { useSessionStore } from '@/contexts/sessionContext';
 import { fetcher } from '@/lib/fetcher';
 import useSWR from 'swr'
 import Fuse from 'fuse.js'
+import { Field, Form, Formik } from 'formik';
+import * as Yup from 'yup'
+import { FormField } from '@/components/forms/field';
+
+const verifySchema = Yup.object({
+    isSafe: Yup.boolean().required(),
+    message: Yup.string().optional(),
+});
 
 export default function VerifikasiPage() {
     const session = useSessionStore();
@@ -12,7 +20,8 @@ export default function VerifikasiPage() {
     const [query, setQuery] = React.useState<string>();
     const [selectedData, setSelectedData] = React.useState<any[]>([]);
     const [sortBy, setSortBy] = React.useState<string>('verificator_id:== \'null\'');
-    const { data, isLoading, mutate } = useSWR(session.token ? `/api/archives?offset=200&page=${currentPage}` : null, url => fetcher(url, {
+    const [current, setCurrent] = React.useState<string>();
+    const { data, isLoading, mutate } = useSWR(session.token ? `/api/archives?offset=200&page=${currentPage}&all=true` : null, url => fetcher(url, {
         headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${session.token}`
@@ -26,18 +35,38 @@ export default function VerifikasiPage() {
             cariForm(query || '');
         },
     });
+    // const isModalOpen = React.useCallback(() => document.getElementById('verify_modal')?.hasAttribute('open') || false, []);
 
-    const sendVerifyNode = (id: string): void => {
+    const sendVerifyNode = (id: string, isSafe: boolean, message?: string, cb?: () => void): void => {
+        const user = data?.archives.find((x: any) => x.id === id);
+        if (!user) return;
+
         fetch(`/api/archives/${id}/verify`, {
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${session.token}`,
             },
             method: 'POST',
+            body: JSON.stringify({
+                isSafe,
+                message,
+            }),
         }).finally(() => {
             mutate();
             setSelectedData(selectedData.filter(x => x.id !== id));
+            if (cb)
+                cb();
         });
+    }
+
+    const handleVerify = (ev: React.MouseEvent<HTMLButtonElement>, id: string) => {
+        // ev.currentTarget.setAttribute('disabled', 'true');
+        const modalDom = document.getElementById('verify_modal');
+
+        if (modalDom) {
+            modalDom.setAttribute('open', '');
+            setCurrent(id);
+        }
     }
 
     const resolveDoc = (t: string) => {
@@ -104,13 +133,13 @@ export default function VerifikasiPage() {
 
                                     <div className="join-item">
                                         <select className="select w-full max-w-xs" value={sortBy} onChange={(ev) => setSortBy(ev.target.value)}>
-                                            <option disabled selected>Sort by:</option>
+                                            <option disabled>Sort by:</option>
                                             <option value="type:== 'zonasi'">Zonasi</option>
                                             <option value="type:== 'prestasi'">Prestasi</option>
                                             <option value="type:== 'afirmasi'">Afirmasi</option>
                                             <option value="type:== 'mutasi'">Mutasi</option>
                                             <option value="verificator_id:!== 'null'">Terverifikasi</option>
-                                            <option value="verificator_id:== 'null'" selected>Tidak terverifikasi</option>
+                                            <option value="verificator_id:== 'null'">Tidak terverifikasi</option>
                                         </select>
                                     </div>
                                 </div>
@@ -144,10 +173,7 @@ export default function VerifikasiPage() {
                                     {selectedData.map((archive: any) => (
                                         <tr key={archive.id}>
                                             <th>
-                                                <button className="btn btn-secondary text-sm" onClick={(ev) => {
-                                                    ev.currentTarget.setAttribute('disabled', 'true');
-                                                    sendVerifyNode(archive.id);
-                                                }}>
+                                                <button disabled={Boolean(archive.verificator_id)} className="btn btn-secondary text-sm" onClick={(ev) => handleVerify(ev, archive.id)}>
                                                     verify
                                                 </button>
                                             </th>
@@ -184,6 +210,55 @@ export default function VerifikasiPage() {
                     )}
                 </div>
             </div>
+
+            <dialog id="verify_modal" className="modal">
+                <form method="dialog" className="modal-box">
+                    {/* <button htmlFor="verify_modal" className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button> */}
+                    <h3 className="font-bold text-lg">
+                        Apakah Anda yakin bahwa <span className="font-semibold">&apos;{selectedData.find((x: any) => x.id === current)?.name || current}&apos;</span> telah terverifikasi dengan benar?
+                    </h3>
+                    <button onClick={() => document.getElementById('verify_modal')?.removeAttribute('open')} type="button" className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
+                    <div className="py-4">
+                        <p>
+                            Sebelum Anda memverifikasi peserta, pastikan Anda telah melihat dengan seksama dokumen yang telah tersedia tentang peserta didik ini. Seperti dokumen SKHU, Foto Pas, dan KK/Sertifikat/SK Mutasi/KIP.
+                        </p>
+                    </div>
+
+                    <Formik
+                        validationSchema={verifySchema}
+                        onSubmit={(values, actions) => {
+                            const message = values.isSafe ? undefined : values.message;
+
+                            sendVerifyNode(current!, values.isSafe, message, () => {
+                                actions.setSubmitting(false);
+                                document.getElementById('verify_modal')?.removeAttribute('open');
+                            });
+                        }}
+                        initialValues={{
+                            isSafe: false,
+                            message: '',
+                        }}
+                    >
+                        {(props => (
+                            <Form onSubmit={props.handleSubmit}>
+                                <div className="form-control">
+                                    <label htmlFor="isSafe">Apakah aman?</label>
+                                    <Field disabled={props.isSubmitting} as="input" type="checkbox" className="checkbox" name="isSafe" />
+                                </div>
+
+                                <div className={`form-control mt-2${props.values.isSafe ? ' hidden': ''}`}>
+                                    <label htmlFor="message">Pesan verifikator</label>
+                                    <Field disabled={props.isSubmitting} as="textarea" name="message" className="textarea textarea-bordered" placeholder="Pesan untuk berkas ini. Contoh: KK tidak masuk zona" />
+                                </div>
+
+                                <div className="modal-action">
+                                    <button type="button" onClick={props.submitForm} className="btn btn-primary" disabled={props.isSubmitting}>{props.isSubmitting ? <span className="loading loading-dots loading-sm"></span> : 'verify'}</button>
+                                </div>
+                            </Form>
+                        ))}
+                    </Formik>
+                </form>
+            </dialog>
         </div>
     )
 }

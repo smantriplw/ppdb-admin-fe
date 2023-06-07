@@ -14,7 +14,10 @@ type StatsJson = {
         daily: {
             todayCount: number;
             lastWeek: number;
+            todayVerified: number;
         };
+        verified: number;
+        nonVerified: number;
     };
 }
 
@@ -64,6 +67,17 @@ export default function MePage() {
                                         {data?.archives.complete.toString() || '0'}
                                     </p>
                                 </div>
+                            </div>
+                            <div className="stats stats-vertical lg:stats-horizontal">
+                                <div className="stat">
+                                    <h1 className="stat-title">
+                                        Terverifikasi Hari Ini (sisa {Math.floor(((data?.archives.nonVerified || 0) / (data.archives.all || 0)) * 100)}%)
+                                    </h1>
+                                    <p className="stat-value">
+                                        {data?.archives.daily.todayVerified.toString() || '0'}
+                                    </p>
+                                </div>
+
 
                                 <div className="stat">
                                     <h1 className="stat-title">
@@ -75,25 +89,15 @@ export default function MePage() {
                                         {data ? (data.archives.all - data.archives.complete).toString() : '0'}
                                     </p>
                                 </div>
-                            </div>
-                            <div className="stats stats-vertical lg:stats-horizontal">
-                                <div className="stat">
-                                    <h1 className="stat-title">
-                                        Pendaftar Hari Ini
-                                    </h1>
-                                    <p className="stat-value">
-                                        {data?.archives.daily.todayCount.toString() || '0'}
-                                    </p>
-                                </div>
 
-                                <div className="stat">
+                                {/* <div className="stat">
                                     <h1 className="stat-title">
                                         Pendaftar Minggu Ini
                                     </h1>
                                     <p className="stat-value">
                                         {data?.archives.daily.lastWeek.toString() || '0'}
                                     </p>
-                                </div>
+                                </div> */}
                             </div>
                             <div className="stats stats-vertical lg:stats-horizontal">
                                 {Object.entries(data?.archives.specified || {}).map(x => (
