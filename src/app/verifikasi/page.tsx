@@ -5,13 +5,12 @@ import { useSessionStore } from '@/contexts/sessionContext';
 import { fetcher } from '@/lib/fetcher';
 import useSWR from 'swr'
 import Fuse from 'fuse.js'
-import { Field, Form, Formik } from 'formik';
+import { ErrorMessage, Field, Form, Formik } from 'formik';
 import * as Yup from 'yup'
-import { FormField } from '@/components/forms/field';
 
 const verifySchema = Yup.object({
     isSafe: Yup.boolean().required(),
-    message: Yup.string().optional(),
+    message: Yup.string().min(30).max(1000).optional(),
 });
 
 export default function VerifikasiPage() {
@@ -37,14 +36,15 @@ export default function VerifikasiPage() {
     });
     // const isModalOpen = React.useCallback(() => document.getElementById('verify_modal')?.hasAttribute('open') || false, []);
 
-    const sendVerifyNode = (id: string, isSafe: boolean, message?: string, cb?: () => void): void => {
+    const sendVerifyNode = (id: string, isSafe: boolean, message?: string, cb?: () => void) => {
         const user = data?.archives.find((x: any) => x.id === id);
         if (!user) return;
 
-        fetch(`/api/archives/${id}/verify`, {
+        return fetch(`/api/archives/${id}/verify`, {
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${session.token}`,
+                'Accept': 'application/json',
             },
             method: 'POST',
             body: JSON.stringify({
@@ -153,6 +153,7 @@ export default function VerifikasiPage() {
                             <table className="table">
                                 <thead>
                                 <tr className="lg:text-lg">
+                                    <th>NO</th>
                                     <th>Actions</th>
                                     <th>Berkas/Kelamin</th>
                                     <th>Nama</th>
@@ -170,8 +171,11 @@ export default function VerifikasiPage() {
                                 </tr>
                                 </thead>
                                 <tbody>
-                                    {selectedData.map((archive: any) => (
+                                    {selectedData.map((archive: any, index) => (
                                         <tr key={archive.id}>
+                                            <th>
+                                                {index+1}
+                                            </th>
                                             <th>
                                                 <button disabled={Boolean(archive.verificator_id)} className="btn btn-secondary text-sm" onClick={(ev) => handleVerify(ev, archive.id)}>
                                                     verify
@@ -227,16 +231,24 @@ export default function VerifikasiPage() {
                     <Formik
                         validationSchema={verifySchema}
                         onSubmit={(values, actions) => {
+                            actions.setErrors({});
                             const message = values.isSafe ? undefined : values.message;
 
                             sendVerifyNode(current!, values.isSafe, message, () => {
                                 actions.setSubmitting(false);
-                                document.getElementById('verify_modal')?.removeAttribute('open');
+                            })?.then(res => res.json()).then(r => {
+                                if (r.errors) {
+                                    delete r['errors'];
+                                    actions.setErrors(r);
+                                    return;
+                                } else {
+                                    document.getElementById('verify_modal')?.removeAttribute('open');
+                                }
                             });
                         }}
                         initialValues={{
                             isSafe: false,
-                            message: '',
+                            message: undefined,
                         }}
                     >
                         {(props => (
@@ -247,8 +259,9 @@ export default function VerifikasiPage() {
                                 </div>
 
                                 <div className={`form-control mt-2${props.values.isSafe ? ' hidden': ''}`}>
-                                    <label htmlFor="message">Pesan verifikator</label>
+                                    <label htmlFor="message">Keterangan</label>
                                     <Field disabled={props.isSubmitting} as="textarea" name="message" className="textarea textarea-bordered" placeholder="Pesan untuk berkas ini. Contoh: KK tidak masuk zona" />
+                                    <ErrorMessage name="message" className="text-red-500" />
                                 </div>
 
                                 <div className="modal-action">
