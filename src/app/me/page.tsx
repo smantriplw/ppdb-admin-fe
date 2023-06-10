@@ -42,7 +42,7 @@ export default function MePage() {
                         </p>
                         <div className="grid grid-cols-2 gap-4">
                             <Link className="btn btn-primary" href={'/verifikasi'}>verifikasi</Link>
-                            <Link className="btn btn-secondary" href={'/users'}>users management</Link>
+                            {session.status === 2 && <Link className="btn btn-secondary" href={'/users'}>users management</Link>}
                         </div>
                     </div>
                     {!isLoading && data?.archives && !('errors' in data) && (
@@ -71,7 +71,7 @@ export default function MePage() {
                             <div className="stats stats-vertical lg:stats-horizontal">
                                 <div className="stat">
                                     <h1 className="stat-title">
-                                        Terverifikasi Hari Ini (sisa {Math.floor(((data?.archives.nonVerified || 0) / (data.archives.all || 0)) * 100)}%)
+                                        Terverifikasi Hari Ini (sisa {Math.round(((data?.archives.nonVerified || 0) / (data.archives.all || 0)) * 100)}%)
                                     </h1>
                                     <p className="stat-value">
                                         {data?.archives.daily.todayVerified.toString() || '0'}

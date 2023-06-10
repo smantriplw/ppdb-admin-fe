@@ -19,7 +19,7 @@ export type UserSession = {
 export type UserAction = {
     updateState: (state: UserSession) => void;
     setToken: (token: string) => void;
-    loadUserInfo: (cb?: () => void) => void;
+    // loadUserInfo: (cb?: () => void) => void;
     reset: () => void;
 }
 
@@ -31,31 +31,31 @@ export const useSessionStore = create<UserSession & UserAction>((set, state) => 
     failed: false,
     updateState: (state) => set(() => state),
     setToken: (token) => set((st) => ({ ...st, token })),
-    loadUserInfo: (onFail) => {
-        const st = state();
-        if (!st.failed) fetch('/api/auth/profile', {
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${st.token}`,
-            },
-        }).then(r => {
-            if (r.status !== 200) {
-                if (onFail) onFail();
+    // loadUserInfo: (onFail) => {
+    //     const st = state();
+    //     if (!st.failed) fetch('/api/auth/profile', {
+    //         headers: {
+    //             'Content-Type': 'application/json',
+    //             'Authorization': `Bearer ${st.token}`,
+    //         },
+    //     }).then(r => {
+    //         if (r.status !== 200) {
+    //             if (onFail) onFail();
 
-                set((st) => ({ ...st, failed: true }));
-                return r.text();
-            }
+    //             set((st) => ({ ...st, failed: true }));
+    //             return r.text();
+    //         }
 
-            return r.json();
-        }).then(res => {
-            if (typeof res === 'string') return;
+    //         return r.json();
+    //     }).then(res => {
+    //         if (typeof res === 'string') return;
 
-            set((st) => ({ ...st, ...res.data, failed: false, }));
-        }).catch(() => {
-            if (onFail) onFail();
-            set((st) => ({ ...st, failed: true }))
-        });
-    },
+    //         set((st) => ({ ...st, ...res.data, failed: false, }));
+    //     }).catch(() => {
+    //         if (onFail) onFail();
+    //         set((st) => ({ ...st, failed: true }))
+    //     });
+    // },
     reset: () => set(() => ({
         email: '',
         id: 0,

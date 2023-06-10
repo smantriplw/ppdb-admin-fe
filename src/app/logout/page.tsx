@@ -14,4 +14,12 @@ export default function Logout() {
 
     router.push('/');
   }, [token, router]);
+
+  return (
+    <main>
+      <h3 className="text-2xl text-center">
+        Please wait..
+      </h3>
+    </main>
+  )
 }

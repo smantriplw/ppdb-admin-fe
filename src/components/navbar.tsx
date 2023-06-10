@@ -5,6 +5,8 @@ import Cookies from 'js-cookie'
 import Link from 'next/link'
 import { useRouter, usePathname } from 'next/navigation'
 import { useThemeSwitcher } from '@/contexts/themeContext';
+import useSWR from 'swr'
+import { fetcher } from '@/lib/fetcher';
 
 export const Navbar = () => {
     const router = useRouter();
@@ -12,21 +14,42 @@ export const Navbar = () => {
     const session = useSessionStore();
     const theme = useThemeSwitcher();
     const tokenAdmin = Cookies.get('ppdb_admin');
+    const { data: sessionData } = useSWR(tokenAdmin ? '/api/auth/profile' : null, url => fetcher(url, {
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${tokenAdmin}`,
+        },
+    }), {
+        onSuccess(data) {
+            if (data.error || data.errors)
+            {
+                session.reset();
+                Cookies.remove('ppdb_admin');
+            }
+        }
+    });
 
     if (typeof document !== 'undefined')
         document.documentElement.setAttribute('data-theme', theme.theme);
 
     React.useEffect(() => {
-        if (tokenAdmin) {
-            if (!session.token) session.setToken(tokenAdmin);
-            if (!session.username.length) session.loadUserInfo(() => {
+        if (sessionData) {
+            if (sessionData.error || sessionData.errors) {
                 session.reset();
                 Cookies.remove('ppdb_admin');
-            });
-        } else if (!tokenAdmin && path !== '/') {
+            } else {
+                session.setToken(tokenAdmin!);
+                session.updateState({...session, ...sessionData.data});
+            }
+        }
+    }, [sessionData]);
+
+    React.useEffect(() => {
+        if (!tokenAdmin && path !== '/') {
             router.push('/');
         }
-    }, [tokenAdmin, session, router, path]);
+    }, [tokenAdmin, router, path]);
+
     return (
         <>
         <div className="navbar bg-base-100">

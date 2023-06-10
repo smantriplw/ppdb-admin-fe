@@ -127,7 +127,7 @@ export default function VerifikasiPage() {
 
     React.useEffect(() => {
         setUserState(data?.archives.find((x: any) => x.id === current));
-    }, [current]);
+    }, [current, data?.archives]);
 
     return (
         <div>

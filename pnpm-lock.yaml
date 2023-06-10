@@ -50,6 +50,9 @@ dependencies:
   react-dom:
     specifier: 18.2.0
     version: 18.2.0(react@18.2.0)
+  react-icons:
+    specifier: ^4.9.0
+    version: 4.9.0(react@18.2.0)
   swr:
     specifier: ^2.1.5
     version: 2.1.5(react@18.2.0)
@@ -2354,6 +2357,14 @@ packages:
 
   /react-fast-compare@2.0.4:
     resolution: {integrity: sha512-suNP+J1VU1MWFKcyt7RtjiSWUjvidmQSlqu+eHslq+342xCbGTYmC0mEhPCOHxlW0CywylOC1u2DFAT+bv4dBw==}
+    dev: false
+
+  /react-icons@4.9.0(react@18.2.0):
+    resolution: {integrity: sha512-ijUnFr//ycebOqujtqtV9PFS7JjhWg0QU6ykURVHuL4cbofvRCf3f6GMn9+fBktEFQOIVZnuAYLZdiyadRQRFg==}
+    peerDependencies:
+      react: '*'
+    dependencies:
+      react: 18.2.0
     dev: false
 
   /react-is@16.13.1:
