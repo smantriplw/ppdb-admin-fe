@@ -156,7 +156,7 @@ export default function VerifikasiPage() {
 
                                     <div className="join-item">
                                         <select className="select w-full max-w-xs" value={sortBy} onChange={(ev) => setSortBy(ev.target.value)}>
-                                            <option disabled>Sort by:</option>991f716e-66d4-4b88-8fb0-884f83c4ae5b
+                                            <option disabled>Sort by:</option>
                                             <option value="type:== 'zonasi'">Zonasi</option>
                                             <option value="type:== 'prestasi'">Prestasi</option>
                                             <option value="type:== 'afirmasi'">Afirmasi</option>
