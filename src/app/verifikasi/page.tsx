@@ -298,7 +298,7 @@ export default function VerifikasiPage() {
                                     <Field checked={ket?.isSafe} disabled={props.isSubmitting || Boolean(ket)} as="input" type="checkbox" className="checkbox" name="isSafe" />
                                 </div>
 
-                                <div className={`form-control mt-2${props.values.isSafe ? ' hidden': ''}`}>
+                                <div className={`form-control mt-2${ket?.isSafe ? ' hidden': ''}`}>
                                     <label htmlFor="message">Keterangan</label>
                                     <Field value={ket?.message} disabled={props.isSubmitting || Boolean(ket)} as="textarea" name="message" className="textarea textarea-bordered" placeholder="Pesan untuk berkas ini. Contoh: KK tidak masuk zona" />
                                     <ErrorMessage name="message" className="text-red-500" />
