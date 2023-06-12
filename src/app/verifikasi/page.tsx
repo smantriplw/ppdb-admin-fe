@@ -81,9 +81,7 @@ export default function VerifikasiPage() {
             {
                 const verifyData = data?.archives.find((x: any) => x.id === id)?.verify_data;
 
-                if (verifyData) {
-                    setKet(verifyData);
-                }
+                setKet(verifyData);
             }
         }
     }
@@ -295,7 +293,7 @@ export default function VerifikasiPage() {
                             <Form onSubmit={props.handleSubmit}>
                                 <div className="form-control">
                                     <label htmlFor="isSafe">Apakah aman?</label>
-                                    <Field checked={ket?.isSafe} disabled={props.isSubmitting || Boolean(ket)} as="input" type="checkbox" className="checkbox" name="isSafe" />
+                                    <Field checked={ket?.isSafe} value={ket?.isSafe} disabled={props.isSubmitting || Boolean(ket)} as="input" type="checkbox" className="checkbox" name="isSafe" />
                                 </div>
 
                                 <div className={`form-control mt-2${ket?.isSafe ? ' hidden': ''}`}>
