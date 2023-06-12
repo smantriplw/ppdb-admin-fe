@@ -196,7 +196,7 @@ export default function VerifikasiPage() {
                                     {selectedData.map((archive: any, index) => (
                                         <tr key={archive.id}>
                                             <th>
-                                                {index+1}
+                                                {archive.index ?? index+1}
                                             </th>
                                             <th>
                                                 <button disabled={sortBy !== 'verificator_id:!== \'null\'' && Boolean(archive.verificator_id)} className={`btn btn-${archive.verificator_id ? 'accent' : 'secondary'} text-sm`} onClick={(ev) => handleVerify(ev, archive.id)}>
