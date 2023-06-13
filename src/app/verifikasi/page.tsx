@@ -103,6 +103,9 @@ export default function VerifikasiPage() {
         setSelectedData(data?.archives || []);
     }, [data, sortBy]);
 
+    const calculateNItem = (item: number) => {
+        return item + ((currentPage-1) * 200);
+    }
 
     const cariForm = React.useCallback((query: string) => {
         setQuery(query);
@@ -194,7 +197,7 @@ export default function VerifikasiPage() {
                                     {selectedData.map((archive: any, index) => (
                                         <tr key={archive.id}>
                                             <th>
-                                                {archive.index ?? index+1}
+                                                {calculateNItem(index+1)}
                                             </th>
                                             <th>
                                                 <button disabled={sortBy !== 'verificator_id:!== \'null\'' && Boolean(archive.verificator_id)} className={`btn btn-${archive.verificator_id ? 'accent' : 'secondary'} text-sm`} onClick={(ev) => handleVerify(ev, archive.id)}>
