@@ -4,7 +4,7 @@ const nextConfig = {
         return [
             {
                 source: '/api/:path*',
-                destination: 'https://ppdb.api.sman3palu.sch.id/api/:path*',
+                destination: 'https://ppdbrest.sman3palu.sch.id/api/:path*',
             },
         ];
     },
@@ -12,7 +12,7 @@ const nextConfig = {
         remotePatterns: [
             {
                 protocol: 'https',
-                hostname: 'ppdb.sman3palu.sch.id',
+                hostname: 'ppdbrest.sman3palu.sch.id',
                 port: '',
             }
         ]
